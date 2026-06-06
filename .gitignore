@@ -71,3 +71,24 @@ storage/ldap_client_tls.key
 /storage/framework/testing
 
 /.phpunit.cache
+# Build artifacts
+public/css/build/
+public/css/dist/
+public/js/dist/
+package-lock.json
+mix-manifest.json
+
+# File lokal
+*.pdf
+*.jpg
+*.png
+refactor/
+
+# Refactor assets
+refactor/
+
+# File lokal tidak relevan
+*.pdf
+Lambang UNRI.png
+Acer*.jpg
+public/.rnd
