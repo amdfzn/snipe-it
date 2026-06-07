@@ -567,8 +567,6 @@
 
 
         .dropdown-menu > li,
-        .navbar,
-        .navbar-nav,
         .label-default,
         .label-default:hover
         {
@@ -650,11 +648,6 @@
         {
             background-color: hsl(from var(--main-theme-color) h s calc(l - 5));
             border-color: hsl(from var(--main-theme-color) h s calc(l - 10));
-            color: var(--nav-primary-text-color) !important;
-        }
-
-        .main-header .navbar .nav>.active>a {
-            background-color: hsl(from var(--main-theme-color) h s calc(l - 5)) !important;
             color: var(--nav-primary-text-color) !important;
         }
 
