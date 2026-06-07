@@ -1,235 +1,156 @@
 @extends('layouts/default')
-{{-- Page title --}}
+
 @section('title')
 {{ trans('general.dashboard') }}
 @parent
 @stop
 
+@push('css')
+<style>
+/* ---- INV Dashboard ---- */
+.inv-dash { padding: 24px; }
 
-{{-- Page content --}}
+/* Stat Cards */
+.inv-stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.inv-stat-card { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 2px 6px rgba(15,27,45,.06), 0 8px 24px rgba(15,27,45,.06); cursor: pointer; transition: transform .12s; text-decoration: none; display: block; border: 1px solid #e5e9f0; }
+.inv-stat-card:hover { transform: translateY(-2px); text-decoration: none; }
+.inv-stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.inv-stat-icon i { font-size: 18px; }
+.inv-stat-n { font-size: 30px; font-weight: 800; letter-spacing: -1px; color: #0f1b2d; line-height: 1; margin-bottom: 4px; }
+.inv-stat-l { font-size: 13px; font-weight: 600; color: #6b7888; }
+
+/* Two column layout */
+.inv-two-col { display: grid; grid-template-columns: 1.55fr 1fr; gap: 16px; align-items: start; }
+
+/* Cards */
+.inv-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 6px rgba(15,27,45,.06), 0 8px 24px rgba(15,27,45,.06); border: 1px solid #e5e9f0; margin-bottom: 16px; overflow: hidden; }
+.inv-card-header { padding: 14px 18px; border-bottom: 1px solid #e5e9f0; display: flex; align-items: center; justify-content: space-between; }
+.inv-card-header h3 { font-size: 14px; font-weight: 700; color: #0f1b2d; margin: 0; }
+.inv-card-body { padding: 0; }
+.inv-card-footer { padding: 12px 18px; border-top: 1px solid #e5e9f0; text-align: center; }
+
+/* Quick Actions */
+.inv-quick-actions { display: flex; gap: 12px; margin-bottom: 16px; }
+.inv-quick-tile { flex: 1; display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; border: 1px solid #e5e9f0; background: #fff; text-decoration: none; transition: all .12s; box-shadow: 0 1px 2px rgba(15,27,45,.06); }
+.inv-quick-tile:hover { transform: translateY(-2px); text-decoration: none; }
+.inv-quick-tile:hover.blue { border-color: #1f6feb; }
+.inv-quick-tile:hover.green { border-color: #15803d; }
+.inv-quick-tile:hover.navy { border-color: #0a2540; }
+.inv-quick-thumb { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.inv-quick-thumb i { font-size: 18px; color: #fff; }
+.inv-quick-label { font-size: 13.5px; font-weight: 700; color: #0f1b2d; display: block; }
+.inv-quick-sub { font-size: 11.5px; color: #6b7888; display: block; }
+
+/* Activity table */
+.inv-activity-table { width: 100%; }
+.inv-activity-table td { padding: 11px 18px; border-top: 1px solid #e5e9f0; font-size: 13px; color: #3c4a5e; vertical-align: middle; }
+.inv-activity-table tr:first-child td { border-top: none; }
+.inv-activity-table tr:hover td { background: #f8fafc; }
+</style>
+@endpush
+
 @section('content')
 
-@if ($snipeSettings->dashboard_message!='')
-<div class="row">
-    <div class="col-md-12">
-        <div class="box box-default">
-            <!-- /.box-header -->
-            <div class="box-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        {!!  Helper::parseEscapedMarkedown($snipeSettings->dashboard_message)  !!}
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="inv-dash">
+
+@if ($snipeSettings->dashboard_message != '')
+<div class="inv-card" style="margin-bottom: 20px;">
+    <div class="inv-card-body" style="padding: 16px 18px;">
+        {!! Helper::parseEscapedMarkedown($snipeSettings->dashboard_message) !!}
     </div>
 </div>
 @endif
 
-<div class="row">
-
-    <!-- panel -->
-    <div class="col-lg-2 col-xs-6">
-        <a href="{{ route('hardware.index') }}">
-            <!-- small hardware box -->
-            <div class="dashboard small-box bg-teal">
-                <div class="inner">
-                    <h3>{{ number_format(\App\Models\Asset::AssetsForShow()->count()) }}</h3>
-                    <p>{{ trans('general.assets') }}</p>
-                </div>
-                <div class="icon" aria-hidden="true">
-                    <x-icon type="assets" />
-                </div>
-                <span class="small-box-footer">
-                    {{ trans('general.view_all') }}
-                    <x-icon type="arrow-circle-right" />
-                </span>
-            </div>
-        </a>
-    </div><!-- ./col -->
-
-    <div class="col-lg-2 col-xs-6">
-        <a href="{{ route('licenses.index') }}" aria-hidden="true">
-            <!-- small license box -->
-            <div class="dashboard small-box bg-maroon">
-                <div class="inner">
-                    <h3>{{ number_format($counts['license']) }}</h3>
-                    <p>{{ trans('general.licenses') }}</p>
-                </div>
-                <div class="icon" aria-hidden="true">
-                    <x-icon type="licenses" />
-                </div>
-                <span class="small-box-footer">
-                    {{ trans('general.view_all') }}
-                    <x-icon type="arrow-circle-right" />
-                </span>
-            </div>
-        </a>
-    </div><!-- ./col -->
-
-
-    <div class="col-lg-2 col-xs-6">
-    <!-- small accessories box -->
-        <a href="{{ route('accessories.index') }}">
-            <div class="dashboard small-box bg-orange">
-                <div class="inner">
-                    <h3> {{ number_format($counts['accessory']) }}</h3>
-                    <p>{{ trans('general.accessories') }}</p>
-                </div>
-                <div class="icon" aria-hidden="true">
-                    <x-icon type="accessories" />
-                </div>
-                <span class="small-box-footer">
-                    {{ trans('general.view_all') }}
-                <x-icon type="arrow-circle-right" />
-                </span>
-            </div>
-        </a>
-    </div><!-- ./col -->
-
-    <div class="col-lg-2 col-xs-6">
-    <!-- small consumables box -->
-        <a href="{{ route('consumables.index') }}">
-            <div class="dashboard small-box bg-purple">
-                <div class="inner">
-                    <h3> {{ number_format($counts['consumable']) }}</h3>
-                    <p>{{ trans('general.consumables') }}</p>
-                </div>
-                <div class="icon" aria-hidden="true">
-                    <x-icon type="consumables" />
-                </div>
-                <span class="small-box-footer">
-                    {{ trans('general.view_all') }}
-                    <x-icon type="arrow-circle-right" />
-                </span>
-            </div>
-        </a>
-    </div><!-- ./col -->
-
-    <div class="col-lg-2 col-xs-6">
-        <!-- small components box -->
-        <a href="{{ route('components.index') }}">
-            <div class="dashboard small-box bg-yellow">
-                <div class="inner">
-                    <h3>{{ number_format($counts['component']) }}</h3>
-                    <p>{{ trans('general.components') }}</p>
-                </div>
-                <div class="icon" aria-hidden="true">
-                    <x-icon type="components" />
-                </div>
-                <span class="small-box-footer">
-                    {{ trans('general.view_all') }}
-                    <x-icon type="arrow-circle-right" />
-                </span>
-            </div>
-        </a>
-    </div><!-- ./col -->
-
-    <div class="col-lg-2 col-xs-6">
-        <!-- small users box -->
-        <a href="{{ route('users.index') }}">
-            <div class="dashboard small-box bg-light-blue">
-                <div class="inner">
-                    <h3>{{ number_format($counts['user']) }}</h3>
-                    <p>{{ trans('general.people') }}</p>
-                </div>
-                <div class="icon" aria-hidden="true">
-                    <x-icon type="users" />
-                </div>
-                <span class="small-box-footer">
-                    {{ trans('general.view_all') }}
-                    <x-icon type="arrow-circle-right" />
-                </span>
-            </div>
-        </a>
-    </div><!-- ./col -->
-
-</div>
+{{-- Stat Cards --}}
+<div class="inv-stat-grid">
+    <a href="{{ route('hardware.index') }}" class="inv-stat-card">
+        <div class="inv-stat-icon" style="background: rgba(31,111,235,.12);">
+            <i class="fas fa-box" style="color: #1f6feb;"></i>
+        </div>
+        <div class="inv-stat-n">{{ number_format(\App\Models\Asset::AssetsForShow()->count()) }}</div>
+        <div class="inv-stat-l">Total Aset</div>
+    </a>
+    <a href="{{ route('hardware.index', ['status' => 'Deployed']) }}" class="inv-stat-card">
+        <div class="inv-stat-icon" style="background: rgba(21,128,61,.12);">
+            <i class="fas fa-exchange-alt" style="color: #15803d;"></i>
+        </div>
+        <div class="inv-stat-n">{{ number_format($counts['deployed'] ?? 0) }}</div>
+        <div class="inv-stat-l">Sedang Dipinjam</div>
+    </a>
+    <a href="{{ route('hardware.index', ['status' => 'Undeployable']) }}" class="inv-stat-card">
+        <div class="inv-stat-icon" style="background: rgba(180,83,9,.12);">
+            <i class="fas fa-wrench" style="color: #b45309;"></i>
+        </div>
+        <div class="inv-stat-n">{{ number_format($counts['undeployable'] ?? 0) }}</div>
+        <div class="inv-stat-l">Perbaikan</div>
+    </a>
+    <a href="{{ route('hardware.index', ['status' => 'Archived']) }}" class="inv-stat-card">
+        <div class="inv-stat-icon" style="background: rgba(192,50,43,.12);">
+            <i class="fas fa-exclamation-triangle" style="color: #c0322b;"></i>
+        </div>
+        <div class="inv-stat-n">{{ number_format($counts['archived'] ?? 0) }}</div>
+        <div class="inv-stat-l">Rusak / Arsip</div>
+    </a>
 </div>
 
 @if ($counts['grand_total'] == 0)
-
-    <div class="row">
-        <div class="col-md-12">
-            <div class="box box-default">
-                <div class="box-header with-border">
-                    <h2 class="box-title">{{ trans('general.dashboard_info') }}</h2>
-                </div>
-                <!-- /.box-header -->
-                <div class="box-body">
-                    <div class="row">
-                        <div class="col-md-12">
-
-                            <div class="progress">
-                                <div class="progress-bar progress-bar-yellow" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%">
-                                    <span class="sr-only">{{ trans('general.60_percent_warning') }}</span>
-                                </div>
-                            </div>
-
-
-                            <p><strong>{{ trans('general.dashboard_empty') }}</strong></p>
-
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-2">
-                            @can('create', \App\Models\Asset::class)
-                            <a class="btn bg-teal" style="width: 100%" href="{{ route('hardware.create') }}">{{ trans('general.new_asset') }}</a>
-                            @endcan
-                        </div>
-                        <div class="col-md-2">
-                            @can('create', \App\Models\License::class)
-                                <a class="btn bg-maroon" style="width: 100%" href="{{ route('licenses.create') }}">{{ trans('general.new_license') }}</a>
-                            @endcan
-                        </div>
-                        <div class="col-md-2">
-                            @can('create', \App\Models\Accessory::class)
-                                <a class="btn bg-orange" style="width: 100%" href="{{ route('accessories.create') }}">{{ trans('general.new_accessory') }}</a>
-                            @endcan
-                        </div>
-                        <div class="col-md-2">
-                            @can('create', \App\Models\Consumable::class)
-                                <a class="btn bg-purple" style="width: 100%" href="{{ route('consumables.create') }}">{{ trans('general.new_consumable') }}</a>
-                            @endcan
-                        </div>
-                        <div class="col-md-2">
-                            @can('create', \App\Models\Component::class)
-                                <a class="btn bg-yellow" style="width: 100%" href="{{ route('components.create') }}">{{ trans('general.new_component') }}</a>
-                            @endcan
-                        </div>
-                        <div class="col-md-2">
-                            @can('create', \App\Models\User::class)
-                                <a class="btn bg-light-blue" style="width: 100%" href="{{ route('users.create') }}">{{ trans('general.new_user') }}</a>
-                            @endcan
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="inv-card">
+    <div class="inv-card-body" style="padding: 32px; text-align: center;">
+        <p style="font-size: 15px; font-weight: 600; color: #0f1b2d;">{{ trans('general.dashboard_empty') }}</p>
+        <div style="display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap;">
+            @can('create', \App\Models\Asset::class)
+            <a class="btn btn-primary" href="{{ route('hardware.create') }}">Tambah Aset</a>
+            @endcan
         </div>
     </div>
-
+</div>
 @else
 
-<!-- recent activity -->
-<div class="row">
-  <div class="col-md-8">
-    <div class="box box-default">
-      <div class="box-header with-border">
-        <h2 class="box-title">{{ trans('general.recent_activity') }}</h2>
-        <div class="box-tools pull-right">
-            <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
-                <x-icon type="minus" />
-                <span class="sr-only">{{ trans('general.collapse') }}</span>
-            </button>
-        </div>
-      </div><!-- /.box-header -->
-      <div class="box-body">
-        <div class="row">
-          <div class="col-md-12">
+{{-- Two column layout --}}
+<div class="inv-two-col">
 
+    {{-- LEFT --}}
+    <div>
+        {{-- Quick Actions --}}
+        <div class="inv-quick-actions">
+            <a href="{{ route('hardware.bulkcheckout.show') }}" class="inv-quick-tile blue">
+                <div class="inv-quick-thumb" style="background: #1f6feb;">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div>
+                    <span class="inv-quick-label">Pinjamkan Aset</span>
+                    <span class="inv-quick-sub">Catat peminjaman</span>
+                </div>
+            </a>
+            <a href="{{ url('hardware?status=RTD') }}" class="inv-quick-tile green">
+                <div class="inv-quick-thumb" style="background: #15803d;">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div>
+                    <span class="inv-quick-label">Terima Kembali</span>
+                    <span class="inv-quick-sub">Proses pengembalian</span>
+                </div>
+            </a>
+            <a href="{{ route('reports.activity') }}" class="inv-quick-tile navy">
+                <div class="inv-quick-thumb" style="background: #0a2540;">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div>
+                    <span class="inv-quick-label">Lihat Laporan</span>
+                    <span class="inv-quick-sub">Aktivitas & riwayat</span>
+                </div>
+            </a>
+        </div>
+
+        {{-- Recent Activity --}}
+        <div class="inv-card">
+            <div class="inv-card-header">
+                <h3>{{ trans('general.recent_activity') }}</h3>
+            </div>
+            <div class="inv-card-body">
                 <table
                     data-cookie-id-table="dashActivityReport"
-                    data-height="500"
+                    data-height="400"
                     data-pagination="false"
                     data-side-pagination="server"
                     data-id-table="dashActivityReport"
@@ -238,256 +159,75 @@
                     data-sort-name="created_at"
                     id="dashActivityReport"
                     class="table table-striped snipe-table"
-                    data-url="{{ route('api.activity.index', ['limit' => 25]) }}">
+                    data-url="{{ route('api.activity.index', ['limit' => 10]) }}">
                     <thead>
                     <tr>
-                        <th data-field="icon" data-visible="true" style="width: 40px;" class="hidden-xs" data-formatter="iconFormatter"><span  class="sr-only">{{ trans('admin/hardware/table.icon') }}</span></th>
-                        <th class="col-sm-3" data-visible="true" data-field="created_at" data-formatter="dateDisplayFormatter">{{ trans('general.date') }}</th>
-                        <th class="col-sm-2" data-visible="true" data-field="admin" data-formatter="usersLinkObjFormatter">{{ trans('general.created_by') }}</th>
-                        <th class="col-sm-2" data-visible="true" data-field="action_type">{{ trans('general.action') }}</th>
-                        <th class="col-sm-3" data-visible="true" data-field="item" data-formatter="polymorphicItemFormatter">{{ trans('general.item') }}</th>
-                        <th class="col-sm-2" data-visible="true" data-field="target" data-formatter="polymorphicItemFormatter">{{ trans('general.target') }}</th>
+                        <th data-field="icon" data-visible="true" style="width: 40px;" data-formatter="iconFormatter"><span class="sr-only">Icon</span></th>
+                        <th data-visible="true" data-field="created_at" data-formatter="dateDisplayFormatter">{{ trans('general.date') }}</th>
+                        <th data-visible="true" data-field="admin" data-formatter="usersLinkObjFormatter">{{ trans('general.created_by') }}</th>
+                        <th data-visible="true" data-field="action_type">{{ trans('general.action') }}</th>
+                        <th data-visible="true" data-field="item" data-formatter="polymorphicItemFormatter">{{ trans('general.item') }}</th>
+                        <th data-visible="true" data-field="target" data-formatter="polymorphicItemFormatter">{{ trans('general.target') }}</th>
                     </tr>
                     </thead>
                 </table>
-          </div><!-- /.col -->
-          <div class="text-center col-md-12" style="padding-top: 10px;">
-            <a href="{{ route('reports.activity') }}" class="btn btn-theme btn-sm" style="width: 100%">{{ trans('general.viewall') }}</a>
-          </div>
-        </div><!-- /.row -->
-      </div><!-- ./box-body -->
-    </div><!-- /.box -->
-  </div>
-  <div class="col-md-4">
-        <div class="box box-default">
-            <div class="box-header with-border">
-                <h2 class="box-title">
-                    {{ (\App\Models\Setting::getSettings()->dash_chart_type == 'name') ? trans('general.assets_by_status') : trans('general.assets_by_status_type') }}
-                </h2>
-                <div class="box-tools pull-right">
-                    <button type="button" class="btn btn-box-tool" data-widget="collapse" aria-hidden="true">
-                        <x-icon type="minus" />
-                        <span class="sr-only">{{ trans('general.collapse') }}</span>
-                    </button>
-                </div>
             </div>
-            <!-- /.box-header -->
-            <div class="box-body">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="chart-responsive">
-                            <canvas id="statusPieChart" height="260"></canvas>
-                        </div> <!-- ./chart-responsive -->
-                    </div> <!-- /.col -->
-                </div> <!-- /.row -->
-            </div><!-- /.box-body -->
-        </div> <!-- /.box -->
-  </div>
-
-</div> <!--/row-->
-<div class="row">
-    <div class="col-md-6">
-
-		@if ((($snipeSettings->scope_locations_fmcs!='1') && ($snipeSettings->full_multiple_companies_support=='1')))
-			 <!-- Companies -->	
-			<div class="box box-default">
-				<div class="box-header with-border">
-					<h2 class="box-title">{{ trans('general.companies') }}</h2>
-					<div class="box-tools pull-right">
-						<button type="button" class="btn btn-box-tool" data-widget="collapse">
-                            <x-icon type="minus" />
-							<span class="sr-only">{{ trans('general.collapse') }}</span>
-						</button>
-					</div>
-				</div>
-				<!-- /.box-header -->
-				<div class="box-body">
-					<div class="row">
-						<div class="col-md-12">
-							<table
-									data-cookie-id-table="dashCompanySummary"
-									data-height="400"
-                                    data-pagination="false"
-									data-side-pagination="server"
-									data-sort-order="desc"
-                                    data-show-columns="false"
-									data-sort-field="assets_count"
-									id="dashCompanySummary"
-									class="table table-striped snipe-table"
-									data-url="{{ route('api.companies.index', ['sort' => 'assets_count', 'order' => 'asc']) }}">
-
-								<thead>
-								<tr>
-									<th class="col-sm-3" data-visible="true" data-field="name" data-formatter="companiesLinkFormatter" data-sortable="true">{{ trans('general.name') }}</th>
-									<th class="col-sm-1" data-visible="true" data-field="users_count" data-sortable="true">
-                                        <x-icon type="users" />
-										<span class="sr-only">{{ trans('general.people') }}</span>
-									</th>
-									<th class="col-sm-1" data-visible="true" data-field="assets_count" data-sortable="true">
-                                        <x-icon type="assets" />
-										<span class="sr-only">{{ trans('general.asset_count') }}</span>
-									</th>
-									<th class="col-sm-1" data-visible="true" data-field="accessories_count" data-sortable="true">
-                                        <x-icon type="accessories" />
-										<span class="sr-only">{{ trans('general.accessories_count') }}</span>
-									</th>
-									<th class="col-sm-1" data-visible="true" data-field="consumables_count" data-sortable="true">
-                                        <x-icon type="consumables" />
-										<span class="sr-only">{{ trans('general.consumables_count') }}</span>
-									</th>
-									<th class="col-sm-1" data-visible="true" data-field="components_count" data-sortable="true">
-                                        <x-icon type="components" />
-										<span class="sr-only">{{ trans('general.components_count') }}</span>
-									</th>
-									<th class="col-sm-1" data-visible="true" data-field="licenses_count" data-sortable="true">
-                                        <x-icon type="licenses" />
-										<span class="sr-only">{{ trans('general.licenses_count') }}</span>
-									</th>
-								</tr>
-								</thead>
-							</table>
-						</div> <!-- /.col -->
-						<div class="text-center col-md-12" style="padding-top: 10px;">
-							<a href="{{ route('companies.index') }}" class="btn btn-theme btn-sm" style="width: 100%">{{ trans('general.viewall') }}</a>
-						</div>
-					</div> <!-- /.row -->
-
-				</div><!-- /.box-body -->
-			</div> <!-- /.box -->
-		
-		@else
-			 <!-- Locations -->
-			 <div class="box box-default">
-				<div class="box-header with-border">
-					<h2 class="box-title">{{ trans('general.locations') }}</h2>
-					<div class="box-tools pull-right">
-						<button type="button" class="btn btn-box-tool" data-widget="collapse">
-                            <x-icon type="minus" />
-							<span class="sr-only">{{ trans('general.collapse') }}</span>
-						</button>
-					</div>
-				</div>
-				<!-- /.box-header -->
-				<div class="box-body">
-					<div class="row">
-						<div class="col-md-12">
-
-							<table
-									data-cookie-id-table="dashLocationSummary"
-									data-height="400"
-									data-side-pagination="server"
-                                    data-pagination="false"
-									data-sort-order="desc"
-									data-sort-field="assets_count"
-									id="dashLocationSummary"
-                                    data-show-columns="false"
-									class="table table-striped snipe-table"
-									data-url="{{ route('api.locations.index', ['sort' => 'assets_count', 'order' => 'asc']) }}">
-								<thead>
-								<tr>
-									<th class="col-sm-3" data-visible="true" data-field="name" data-formatter="locationsLinkFormatter" data-sortable="true">{{ trans('general.name') }}</th>
-									
-									<th class="col-sm-1" data-visible="true" data-field="assets_count" data-sortable="true">
-                                        <x-icon type="assets" />
-										<span class="sr-only">{{ trans('general.asset_count') }}</span>
-									</th>
-									<th class="col-sm-1" data-visible="true" data-field="assigned_assets_count" data-sortable="true">
-										
-										{{ trans('general.assigned') }}
-									</th>
-									<th class="col-sm-1" data-visible="true" data-field="users_count" data-sortable="true">
-                                        <x-icon type="users" />
-										<span class="sr-only">{{ trans('general.people') }}</span>
-										
-									</th>
-									
-								</tr>
-								</thead>
-							</table>
-						</div> <!-- /.col -->
-						<div class="text-center col-md-12" style="padding-top: 10px;">
-							<a href="{{ route('locations.index') }}" class="btn btn-theme btn-sm" style="width: 100%">{{ trans('general.viewall') }}</a>
-						</div>
-					</div> <!-- /.row -->
-
-				</div><!-- /.box-body -->
-			</div> <!-- /.box -->
-
-		@endif
-			
-    </div>
-    <div class="col-md-6">
-
-        <!-- Categories -->
-        <div class="box box-default">
-            <div class="box-header with-border">
-                <h2 class="box-title">{{ trans('general.asset') }} {{ trans('general.categories') }}</h2>
-                <div class="box-tools pull-right">
-                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
-                        <x-icon type="minus" />
-                        <span class="sr-only">{{ trans('general.collapse') }}</span>
-                    </button>
-                </div>
+            <div class="inv-card-footer">
+                <a href="{{ route('reports.activity') }}" class="btn btn-sm" style="background: #f4f6fa; color: #3c4a5e; border: 1px solid #e5e9f0; border-radius: 8px; font-weight: 600; font-size: 12.5px;">Lihat Semua Aktivitas</a>
             </div>
-            <!-- /.box-header -->
-            <div class="box-body">
-                <div class="row">
-                    <div class="col-md-12">
-
-                        <table
-                                data-cookie-id-table="dashCategorySummary"
-                                data-height="400"
-                                data-pagination="false"
-                                data-side-pagination="server"
-                                data-show-columns="false"
-                                data-sort-order="desc"
-                                data-sort-field="assets_count"
-                                id="dashCategorySummary"
-                                class="table table-striped snipe-table"
-                                data-url="{{ route('api.categories.index', ['sort' => 'assets_count', 'order' => 'asc']) }}">
-                            <thead>
-                            <tr>
-                                <th class="col-sm-3" data-visible="true" data-field="name" data-formatter="categoriesLinkFormatter" data-sortable="true">{{ trans('general.name') }}</th>
-                                <th class="col-sm-3" data-visible="true" data-field="category_type" data-sortable="true">
-                                    {{ trans('general.type') }}
-                                </th>
-                                <th class="col-sm-1" data-visible="true" data-field="assets_count" data-sortable="true">
-                                    <x-icon type="assets" />
-                                    <span class="sr-only">{{ trans('general.asset_count') }}</span>
-                                </th>
-                                <th class="col-sm-1" data-visible="true" data-field="accessories_count" data-sortable="true">
-                                    <x-icon type="licenses" />
-                                    <span class="sr-only">{{ trans('general.accessories_count') }}</span>
-                                </th>
-                                <th class="col-sm-1" data-visible="true" data-field="consumables_count" data-sortable="true">
-                                    <x-icon type="consumables" />
-                                    <span class="sr-only">{{ trans('general.consumables_count') }}</span>
-                                </th>
-                                <th class="col-sm-1" data-visible="true" data-field="components_count" data-sortable="true">
-                                    <x-icon type="components" />
-                                    <span class="sr-only">{{ trans('general.components_count') }}</span>
-                                </th>
-                                <th class="col-sm-1" data-visible="true" data-field="licenses_count" data-sortable="true">
-                                    <x-icon type="licenses" />
-                                    <span class="sr-only">{{ trans('general.licenses_count') }}</span>
-                                </th>
-                            </tr>
-                            </thead>
-                        </table>
-
-                    </div> <!-- /.col -->
-                    <div class="text-center col-md-12" style="padding-top: 10px;">
-                        <a href="{{ route('categories.index') }}" class="btn btn-theme btn-sm" style="width: 100%">{{ trans('general.viewall') }}</a>
-                    </div>
-                </div> <!-- /.row -->
-
-            </div><!-- /.box-body -->
-        </div> <!-- /.box -->
+        </div>
     </div>
 
+    {{-- RIGHT --}}
+    <div>
+        {{-- Status Chart --}}
+        <div class="inv-card">
+            <div class="inv-card-header">
+                <h3>Aset per Status</h3>
+            </div>
+            <div class="inv-card-body" style="padding: 18px;">
+                <div class="chart-responsive">
+                    <canvas id="statusPieChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
 
+        {{-- Summary Cards --}}
+        <div class="inv-card">
+            <div class="inv-card-header">
+                <h3>Ringkasan</h3>
+            </div>
+            <div class="inv-card-body">
+                <table style="width:100%;">
+                    <tr style="border-bottom: 1px solid #e5e9f0;">
+                        <td style="padding: 12px 18px; font-size: 13px; color: #6b7888; font-weight: 600;">Lisensi</td>
+                        <td style="padding: 12px 18px; font-size: 13px; font-weight: 700; color: #0f1b2d; text-align: right;"><a href="{{ route('licenses.index') }}">{{ number_format($counts['license']) }}</a></td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e5e9f0;">
+                        <td style="padding: 12px 18px; font-size: 13px; color: #6b7888; font-weight: 600;">Aksesori</td>
+                        <td style="padding: 12px 18px; font-size: 13px; font-weight: 700; color: #0f1b2d; text-align: right;"><a href="{{ route('accessories.index') }}">{{ number_format($counts['accessory']) }}</a></td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e5e9f0;">
+                        <td style="padding: 12px 18px; font-size: 13px; color: #6b7888; font-weight: 600;">Konsumabel</td>
+                        <td style="padding: 12px 18px; font-size: 13px; font-weight: 700; color: #0f1b2d; text-align: right;"><a href="{{ route('consumables.index') }}">{{ number_format($counts['consumable']) }}</a></td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #e5e9f0;">
+                        <td style="padding: 12px 18px; font-size: 13px; color: #6b7888; font-weight: 600;">Komponen</td>
+                        <td style="padding: 12px 18px; font-size: 13px; font-weight: 700; color: #0f1b2d; text-align: right;"><a href="{{ route('components.index') }}">{{ number_format($counts['component']) }}</a></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px 18px; font-size: 13px; color: #6b7888; font-weight: 600;">Pengguna</td>
+                        <td style="padding: 12px 18px; font-size: 13px; font-weight: 700; color: #0f1b2d; text-align: right;"><a href="{{ route('users.index') }}">{{ number_format($counts['user']) }}</a></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
 @endif
 
+</div>
 
 @stop
 
@@ -496,61 +236,32 @@
 @stop
 
 @push('js')
-
-
-        <script src="{{ url(mix('js/dist/Chart.min.js')) }}"></script>
+<script src="{{ url(mix('js/dist/Chart.min.js')) }}"></script>
 <script nonce="{{ csrf_token() }}">
-    // ---------------------------
-    // - ASSET STATUS CHART -
-    // ---------------------------
-      var pieChartCanvas = $("#statusPieChart").get(0).getContext("2d");
-      var pieChart = new Chart(pieChartCanvas);
-      var ctx = document.getElementById("statusPieChart");
-      var pieOptions = {
-              legend: {
-                  position: 'top',
-                  responsive: true,
-                  maintainAspectRatio: true,
-              },
-              tooltips: {
-                callbacks: {
-                    label: function(tooltipItem, data) {
-                        counts = data.datasets[0].data;
-                        total = 0;
-                        for(var i in counts) {
-                            total += counts[i];
-                        }
-                        prefix = data.labels[tooltipItem.index] || '';
-                        return prefix+" "+Math.round(counts[tooltipItem.index]/total*100)+"%";
-                    }
+    var pieChartCanvas = $("#statusPieChart").get(0).getContext("2d");
+    var ctx = document.getElementById("statusPieChart");
+    var pieOptions = {
+        legend: { position: 'top', responsive: true, maintainAspectRatio: true },
+        tooltips: {
+            callbacks: {
+                label: function(tooltipItem, data) {
+                    var counts = data.datasets[0].data;
+                    var total = 0;
+                    for(var i in counts) { total += counts[i]; }
+                    var prefix = data.labels[tooltipItem.index] || '';
+                    return prefix + " " + Math.round(counts[tooltipItem.index]/total*100) + "%";
                 }
-              }
-          };
-
-      $.ajax({
-          type: 'GET',
-          url: '{{ (\App\Models\Setting::getSettings()->dash_chart_type == 'name') ? route('api.statuslabels.assets.byname') : route('api.statuslabels.assets.bytype') }}',
-          headers: {
-              "X-Requested-With": 'XMLHttpRequest',
-              "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content')
-          },
-          dataType: 'json',
-          success: function (data) {
-              var myPieChart = new Chart(ctx,{
-                  type   : 'pie',
-                  data   : data,
-                  options: pieOptions
-              });
-          },
-          error: function (data) {
-              // window.location.reload(true);
-          },
-      });
-        var last = document.getElementById('statusPieChart').clientWidth;
-        addEventListener('resize', function() {
-        var current = document.getElementById('statusPieChart').clientWidth;
-        if (current != last) location.reload();
-        last = current;
+            }
+        }
+    };
+    $.ajax({
+        type: 'GET',
+        url: '{{ (\App\Models\Setting::getSettings()->dash_chart_type == "name") ? route("api.statuslabels.assets.byname") : route("api.statuslabels.assets.bytype") }}',
+        headers: { "X-Requested-With": 'XMLHttpRequest', "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content') },
+        dataType: 'json',
+        success: function (data) {
+            new Chart(ctx, { type: 'pie', data: data, options: pieOptions });
+        }
     });
 </script>
 @endpush
