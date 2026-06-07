@@ -29,7 +29,6 @@ class DashboardController extends Controller
         // Show the page
         if (auth()->user()->hasAccess('admin')) {
             $asset_stats = null;
-
             $counts['asset'] = \App\Models\Asset::count();
             $counts['accessory'] = \App\Models\Accessory::count();
             $counts['license'] = \App\Models\License::assetcount();
@@ -38,12 +37,44 @@ class DashboardController extends Controller
             $counts['user'] = \App\Models\Company::scopeCompanyables(auth()->user())->count();
             $counts['grand_total'] = $counts['asset'] + $counts['accessory'] + $counts['license'] + $counts['consumable'];
 
+            // Tambahan untuk dashboard modern
+            $counts['deployed'] = \App\Models\Asset::Deployed()->count();
+            $counts['undeployable'] = \App\Models\Asset::Undeployable()->count();
+            $counts['archived'] = \App\Models\Asset::Archived()->count();
+            $counts['rtd'] = \App\Models\Asset::RTD()->count();
+
+            // Aset jatuh tempo (dipinjam dengan expected_checkin)
+            $due_assets = \App\Models\Asset::where('assigned_to', '!=', null)
+                ->whereNotNull('expected_checkin')
+                ->where('expected_checkin', '<=', now()->addDays(7))
+                ->with('assignedTo')
+                ->orderBy('expected_checkin', 'asc')
+                ->take(5)
+                ->get();
+
+            // Aktivitas terbaru
+            $recent_activity = \App\Models\Actionlog::with(['user', 'item'])
+                ->orderBy('created_at', 'desc')
+                ->take(8)
+                ->get();
+
+            // Aset per kategori
+            $assets_by_category = \App\Models\Category::withCount('assets')
+                ->having('assets_count', '>', 0)
+                ->orderBy('assets_count', 'desc')
+                ->get();
+
             if ((! file_exists(storage_path().'/oauth-private.key')) || (! file_exists(storage_path().'/oauth-public.key'))) {
                 Artisan::call('migrate', ['--force' => true]);
                 Artisan::call('passport:install', ['--no-interaction' => true]);
             }
 
-            return view('dashboard')->with('asset_stats', $asset_stats)->with('counts', $counts);
+            return view('dashboard')
+                ->with('asset_stats', $asset_stats)
+                ->with('counts', $counts)
+                ->with('due_assets', $due_assets)
+                ->with('recent_activity', $recent_activity)
+                ->with('assets_by_category', $assets_by_category);
         } else {
             Session::reflash();
 
