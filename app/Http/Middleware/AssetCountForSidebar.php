@@ -113,6 +113,13 @@ class AssetCountForSidebar
         view()->share('total_due_and_overdue_for_checkin', ($total_due_for_checkin + $total_overdue_for_checkin));
         view()->share('total_due_and_overdue_for_audit', ($total_due_for_audit + $total_overdue_for_audit));
 
+        try {
+            $total_maintenances_sidebar = \App\Models\Maintenance::count();
+            view()->share('total_maintenances_sidebar', $total_maintenances_sidebar);
+        } catch (\Exception $e) {
+            Log::debug($e);
+        }
+
         return $next($request);
     }
 }
